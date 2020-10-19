@@ -9,7 +9,7 @@ library(tidyverse)
 library(httr)
 library(glue)
 
-knitr::opts_chunk(
+knitr::opts_chunk$set(
   cache = F,
   echo = F,
   warning = F,
@@ -17,33 +17,48 @@ knitr::opts_chunk(
 )
 
 ```
-# Scraping data from [listing.ca](https://listing.ca/mls)
 
+# Scraping data from [listing.ca](https://listing.ca/mls)
 
 ```{r}
 # URL structure https://listing.ca/mls/?.cy.........422..$
 
+pages <- 1:10
 
-# Scrape basic data from webpage
-webpage <- read_html("https://toronto.listing.ca/")
+pages_url <- glue("https://listing.ca/mls/?.cy.........{pages}..$")
 
-listings <- tibble(
-  # Address
-  address = html_nodes(webpage, ".slt_address a") %>% 
-    html_text(),
+scraped_listings <- pages_url %>% 
+  map(.f = scraper) %>% 
+  bind_rows()
+
+
+#' Scrape basic data from listing.ca
+#'
+#' @param url webpage URL to be scraped
+#'
+#' @return scraped webpage in HTML text
+scraper <- function(url){
   
-  # Number of bedrooms
-  n_beds = html_nodes(webpage, ".slt_beds") %>% 
-    html_text(),
+  webpage <- read_html(url)
   
-  # Number of bathrooms
-  n_baths = html_nodes(webpage, ".slt_baths") %>% 
-    html_text(),
-  
-  # House pricesLO
-  prices = html_nodes(webpage, ".slt_price") %>% 
-    html_text()
-) 
+  tibble(
+    # Address
+    address = html_nodes(webpage, ".slt_address a") %>% 
+      html_text(),
+    
+    # Number of bedrooms
+    n_beds = html_nodes(webpage, ".slt_beds") %>% 
+      html_text(),
+    
+    # Number of bathrooms
+    n_baths = html_nodes(webpage, ".slt_baths") %>% 
+      html_text(),
+    
+    # House pricesLO
+    prices = html_nodes(webpage, ".slt_price") %>% 
+      html_text()
+  ) 
+}
 
 ```
 
@@ -53,33 +68,35 @@ listings <- tibble(
 #' @param address 
 #' @param city 
 #'
-#' @return a semicolon-separated string with street number, street address, postal code, longitude, and latitude
+#' @return JSON response object from Google Maps Geocoding API
 get_geocode_data <- function(address, city = "Toronto"){
   
   # Replace spaces with %20 for API URL
-  address <- str_replace_all(address, " ", "%20")
+  address <- str_replace_all(address, " ", "+")
+  
+  # Get Google Cloud API Key
+  API_KEY <- Sys.getenv("GCLOUD_API_KEY")
   
   # Fetch response from API
   res <- GET(url = glue::glue(
-    "https://geocoder.ca/?locate={address}%20{city}&json=1"
+    "https://maps.googleapis.com/maps/api/geocode/json?address={address},+{city},+ON&key={API_KEY}"
   ))
   
-  content <- content(res, as = "parsed")
+  content <- content(res, as = "text")
   
-  return(glue("{content$standard$stnumber};{content$standard$staddress};{content$postal};{content$longt};{content$latt}"))
-  
+  return(content)
 }
-address <- "72 Westbourne Ave"
-get_geocode_data(address)
 
-t <- listings %>%
+content$results$address_components[[1]]
+tictoc::tic()
+listings_data <- scraped_listings %>% 
   slice(1:3) %>% 
-  mutate(geocode_data = map_chr(address,
-                                get_geocode_data)) %>% 
-  separate(col = geocode_data,
-           into = c("street_number", "street_address", "postal_code", "longitude", "latitude"),
-           sep = ";")
-
+  mutate(geocode_res = map_chr(address,
+                               get_geocode_data))
+# separate(col = geocode_data,
+# into = c("street_number", "street_address", "postal_code", "longitude", "latitude"),
+# sep = ";")
+tictoc::toc()
 
 ```
 
