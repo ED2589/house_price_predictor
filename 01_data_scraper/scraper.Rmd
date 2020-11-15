@@ -239,7 +239,6 @@ saveRDS(ontario_listings,
         file = "housing_data.rds",
         version = 3)
 
-
 ```
 
 
