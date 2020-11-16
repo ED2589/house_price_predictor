@@ -70,9 +70,9 @@ ui <- function(request) {
 
 server <- function(input, output, session) {
   
-  model <- readRDS(here::here("02_model/model.rds"))
-  recipe <- readRDS(here::here("02_model/preprocessing_recipe.rds"))
-  data_values <- readRDS(here::here("02_model/data_values.rds"))
+  model <- readRDS("model.rds")
+  recipe <- readRDS("preprocessing_recipe.rds")
+  data_values <- readRDS("data_values.rds")
   
   # Update input value ranges based on training data
   observe({
@@ -133,7 +133,7 @@ server <- function(input, output, session) {
   
   # Generate prediction
   observeEvent(input$get_prediction,{
-    
+    # browser()
     # Get geocoding data from Geocoder API based on inputted address
     if (!is.null(input$address)){
       # Format address string
@@ -167,26 +167,29 @@ server <- function(input, output, session) {
         inputId = "latitude",
         value = as.numeric(content$latt)
       )
-      
     }
     
-    input_data <- data.frame(
-      n_beds = input$n_beds,
-      n_baths = input$n_baths,
-      listing_type = input$home_type,
-      locality = input$town,
-      latitude = NA,
-      longitude = NA,
-      postal_code_abb = input$postal_code
-    )
     
-    input_vector <- prep(recipe, new_data = input_data) %>% 
-      bake(new_data = input_data) %>% 
-      data.matrix()
+    # input_data <- data.frame(
+    #   n_beds = input$n_beds,
+    #   n_baths = input$n_baths,
+    #   listing_type = input$home_type,
+    #   locality = input$town,
+    #   # latitude = input$latitude,
+    #   # longitude = input$longitude,
+    #   latitude = NA,
+    #   longitude = NA,
+    #   postal_code_abb = input$postal_code
+    # )
+    # 
+    # input_vector <- prep(recipe, new_data = input_data) %>% 
+    #   bake(new_data = input_data) %>% 
+    #   data.matrix()
+    # 
+    # prediction <- predict(model, newdata = input_vector)
+    # 
+    # output$predicted_price <- renderText(prediction)
     
-    prediction <- predict(model, newdata = input_vector)
-    
-    output$predicted_price <- renderText(prediction)
   })
   
 }
