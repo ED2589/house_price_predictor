@@ -4,6 +4,9 @@ library(htmltools)
 library(glue)
 library(httr)
 library(jsonlite)
+library(xgboost)
+library(tidymodels)
+library(tidyverse)
 
 ui <- function(request) {
   fluidPage(
@@ -58,7 +61,6 @@ ui <- function(request) {
         numericInput("latitude", 
                      "Latitude",
                      value = NULL),
-        bookmarkButton(),
         actionButton("get_prediction",
                      label = "Predict Price")
       ),
@@ -194,6 +196,9 @@ server <- function(input, output, session) {
         input_vector <- prep(recipe, new_data = input_data) %>%
           bake(new_data = input_data) %>%
           data.matrix()
+        
+        message(all(model$feature_names==colnames(input_vector)))
+        message(model$feature_names[which(model$feature_names != colnames(input_vector))])
         
         predict(model, newdata = input_vector)
         

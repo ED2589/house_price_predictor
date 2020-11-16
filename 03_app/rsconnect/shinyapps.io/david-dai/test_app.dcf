@@ -5,8 +5,8 @@ account: david-dai
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3238202
-bundleId: 3865332
+bundleId: 3867243
 url: https://david-dai.shinyapps.io/test_app/
-when: 1605505829.63236
+when: 1605541037.20463
 asMultiple: FALSE
 asStatic: FALSE

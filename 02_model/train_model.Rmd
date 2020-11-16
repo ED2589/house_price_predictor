@@ -21,7 +21,16 @@ housing_data <- readRDS(here::here("housing_data.rds")) %>%
   mutate(latitude = as.numeric(latitude),
          longitude = as.numeric(longitude),
          n_beds = as.numeric(substr(n_beds, 1, 1)),
-         n_baths = as.numeric(n_baths))
+         n_baths = as.numeric(n_baths),
+         # Simplify locality variable to main cities
+         locality = case_when(
+           !locality %in% c("Toronto", "Mississauga", "Vaughan",
+                            "Bramptom", "Markham", "Richmond Hill",
+                            "Oakville", "Hamilton", "Burlington", "Barrie",
+                            "Oshawa", NA_character_, "Newmarket", "Aurora") ~
+             "Other",
+           TRUE ~ locality
+         ))
 
 recipe <- recipe( ~ n_beds + n_baths + listing_type + locality + latitude + 
                    longitude + postal_code_abb, data = housing_data) %>% 
@@ -50,10 +59,10 @@ xgb_fit <- xgb.train(data = train,
                      booster = "gbtree")
 
 # Save model object
-saveRDS(xgb_fit, "model.rds")
+saveRDS(xgb_fit, here::here("03_app/model.rds"))
 
 # Save preprocessing steps
-saveRDS(recipe, "preprocessing_recipe.rds")
+saveRDS(recipe, here::here("03_app/preprocessing_recipe.rds"))
 
 # Save categories for categorical variables to use for app dropdown menus
 data_values <- list(
@@ -66,7 +75,7 @@ data_values <- list(
   latitude = range(housing_data$latitude)
 )
 
-saveRDS(data_values, "data_values.rds")
+saveRDS(data_values, here::here("03_app/data_values.rds"))
 
 ```
 
