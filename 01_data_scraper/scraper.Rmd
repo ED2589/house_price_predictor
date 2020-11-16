@@ -235,6 +235,10 @@ ontario_listings <- parsed_dataset %>%
                                                        data_element = "postal_code"))
   )
 
+saveRDS(ontario_listings,
+        file = "housing_data.rds",
+        version = 3)
+
 
 ```
 
