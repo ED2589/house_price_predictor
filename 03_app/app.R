@@ -41,6 +41,8 @@ ui <- function(request) {
                     choices = NULL,
                     selected = NULL,
                     multiple = TRUE),
+        actionButton("get_geocode",
+                     label = "Get postal code/longitude/latitude)"),
         pickerInput("postal_code",
                     "Postal Code",
                     options = pickerOptions(
@@ -91,7 +93,7 @@ server <- function(input, output, session) {
       max = data_values$n_baths[2],
       value = 2
     )
-
+    
     updatePickerInput(
       session,
       inputId = "town",
@@ -119,7 +121,7 @@ server <- function(input, output, session) {
       min = data_values$longitude[1],
       max = data_values$longitude[2]
     )
-  
+    
     updateNumericInput(
       session,
       inputId = "latitude",
@@ -132,7 +134,7 @@ server <- function(input, output, session) {
   
   
   # Generate prediction
-  observeEvent(input$get_prediction,{
+  observeEvent(input$get_geocode,{
     # browser()
     # Get geocoding data from Geocoder API based on inputted address
     if (!is.null(input$address)){
@@ -155,7 +157,7 @@ server <- function(input, output, session) {
         selected = substr(content$postal, 1, 3)
       )
       
-      # Update longitude and latidue
+      # Update longitude and latitude
       updateNumericInput(
         session,
         inputId = "longitude",
@@ -169,26 +171,34 @@ server <- function(input, output, session) {
       )
     }
     
+  })
+  
+  observeEvent(input$get_prediction, {
     
-    # input_data <- data.frame(
-    #   n_beds = input$n_beds,
-    #   n_baths = input$n_baths,
-    #   listing_type = input$home_type,
-    #   locality = input$town,
-    #   # latitude = input$latitude,
-    #   # longitude = input$longitude,
-    #   latitude = NA,
-    #   longitude = NA,
-    #   postal_code_abb = input$postal_code
-    # )
-    # 
-    # input_vector <- prep(recipe, new_data = input_data) %>% 
-    #   bake(new_data = input_data) %>% 
-    #   data.matrix()
-    # 
-    # prediction <- predict(model, newdata = input_vector)
-    # 
-    # output$predicted_price <- renderText(prediction)
+    output$predicted_price <- renderText(
+      {
+        need(input$longitude, "Need longitude")
+        need(input$latitude, "Need latitude")
+        
+        input_data <- isolate(
+          data.frame(
+            n_beds = input$n_beds,
+            n_baths = input$n_baths,
+            listing_type = input$home_type,
+            locality = input$town,
+            latitude = input$latitude,
+            longitude = input$longitude,
+            postal_code_abb = input$postal_code
+          ))
+        
+        input_vector <- prep(recipe, new_data = input_data) %>%
+          bake(new_data = input_data) %>%
+          data.matrix()
+        
+        predict(model, newdata = input_vector)
+        
+      }
+    )
     
   })
   
