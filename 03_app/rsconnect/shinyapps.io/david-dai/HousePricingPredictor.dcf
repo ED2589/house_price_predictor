@@ -1,0 +1,13 @@
+name: HousePricingPredictor
+title: HousePricingPredictor
+username:
+account: david-dai
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3243134
+bundleId: 3867461
+url: https://david-dai.shinyapps.io/HousePricingPredictor/
+when: 1605544400.04481
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: api.R

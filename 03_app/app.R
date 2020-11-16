@@ -137,7 +137,6 @@ server <- function(input, output, session) {
   
   # Generate prediction
   observeEvent(input$get_geocode,{
-    # browser()
     # Get geocoding data from Geocoder API based on inputted address
     if (!is.null(input$address)){
       # Format address string
@@ -197,9 +196,6 @@ server <- function(input, output, session) {
           bake(new_data = input_data) %>%
           data.matrix()
         
-        message(all(model$feature_names==colnames(input_vector)))
-        message(model$feature_names[which(model$feature_names != colnames(input_vector))])
-        
         predict(model, newdata = input_vector)
         
       }
@@ -209,4 +205,4 @@ server <- function(input, output, session) {
   
 }
 
-shinyApp(ui, server, enableBookmarking = "url")
+shinyApp(ui, server)
