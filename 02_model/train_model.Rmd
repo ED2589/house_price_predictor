@@ -23,7 +23,7 @@ housing_data <- readRDS(here::here("housing_data.rds")) %>%
          n_beds = as.numeric(substr(n_beds, 1, 1)),
          n_baths = as.numeric(n_baths))
 
-recipe <- recipe(prices ~ n_beds + n_baths + listing_type + locality + latitude + 
+recipe <- recipe( ~ n_beds + n_baths + listing_type + locality + latitude + 
                    longitude + postal_code_abb, data = housing_data) %>% 
   step_dummy(listing_type, locality, postal_code_abb)
 
@@ -33,7 +33,7 @@ training_data <- prep(recipe, new_data = housing_data) %>%
 folds <- vfold_cv(training_data,
                   v = 2)
 
-train <- xgb.DMatrix(data.matrix(training_data), label = training_data$prices)
+train <- xgb.DMatrix(data.matrix(training_data), label = housing_data$prices)
 
 params <- list(max_depth = 8,
                eta = 0.3,
@@ -49,7 +49,24 @@ xgb_fit <- xgb.train(data = train,
                      print_every_n = 100,
                      booster = "gbtree")
 
+# Save model object
 saveRDS(xgb_fit, "model.rds")
+
+# Save preprocessing steps
+saveRDS(recipe, "preprocessing_recipe.rds")
+
+# Save categories for categorical variables to use for app dropdown menus
+data_values <- list(
+  listing_type = unique(housing_data$listing_type),
+  locality = unique(housing_data$locality),
+  postal_code = unique(housing_data$postal_code_abb),
+  n_beds = range(housing_data$n_beds),
+  n_baths = range(housing_data$n_baths),
+  longitude = range(housing_data$longitude),
+  latitude = range(housing_data$latitude)
+)
+
+saveRDS(data_values, "data_values.rds")
 
 ```
 
