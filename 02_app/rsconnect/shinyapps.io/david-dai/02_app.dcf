@@ -1,0 +1,10 @@
+name: 02_app
+title:
+username:
+account: david-dai
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3238194
+bundleId: 3864229
+url: https://david-dai.shinyapps.io/02_app/
+when: 1605478328.40053
