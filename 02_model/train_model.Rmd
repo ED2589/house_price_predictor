@@ -1,0 +1,55 @@
+---
+title: "Train house price prediction model"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+```
+
+```{r}
+library(xgboost)
+library(tidyverse)
+library(tidymodels)
+
+housing_data <- readRDS(here::here("housing_data.rds")) %>% 
+  mutate(postal_code_abb = substr(postal_code, 1, 3)) %>% 
+  select(n_beds, n_baths, listing_type, locality,
+         latitude, longitude, postal_code_abb, prices) %>% 
+  as.data.frame() %>% 
+  mutate(latitude = as.numeric(latitude),
+         longitude = as.numeric(longitude),
+         n_beds = as.numeric(substr(n_beds, 1, 1)),
+         n_baths = as.numeric(n_baths))
+
+recipe <- recipe(prices ~ n_beds + n_baths + listing_type + locality + latitude + 
+                   longitude + postal_code_abb, data = housing_data) %>% 
+  step_dummy(listing_type, locality, postal_code_abb)
+
+training_data <- prep(recipe, new_data = housing_data) %>% 
+  bake(new_data = housing_data)
+
+folds <- vfold_cv(training_data,
+                  v = 2)
+
+train <- xgb.DMatrix(data.matrix(training_data), label = training_data$prices)
+
+params <- list(max_depth = 8,
+               eta = 0.3,
+               nthread = 6,
+               subsample = 0.7,
+               colsample_bytree = 0.7)
+
+xgb_fit <- xgb.train(data = train,
+                     params = params,
+                     nrounds = 1000,
+                     maximize = FALSE,
+                     objective = "reg:squarederror", 
+                     print_every_n = 100,
+                     booster = "gbtree")
+
+saveRDS(xgb_fit, "model.rds")
+
+```
+
