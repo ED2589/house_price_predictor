@@ -196,10 +196,7 @@ server <- function(input, output, session) {
         input_vector <- prep(recipe, new_data = input_data) %>%
           bake(new_data = input_data) %>%
           data.matrix()
-        
-        message(all(model$feature_names==colnames(input_vector)))
-        message(model$feature_names[which(model$feature_names != colnames(input_vector))])
-        
+
         predict(model, newdata = input_vector)
         
       }
