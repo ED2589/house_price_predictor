@@ -74,7 +74,7 @@ ui <- function(request) {
 
 server <- function(input, output, session) {
   
-  model <- readRDS("model.rds")
+  model <- readRDS("model_fit.rds")
   recipe <- readRDS("preprocessing_recipe.rds")
   data_values <- readRDS("data_values.rds")
   

@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 
 ```{r}
 #' Scrape basic data from listing.ca
-#'dim
+#'
 #' @param url webpage URL to be scraped
 #'
 #' @return scraped webpage in HTML text
@@ -93,7 +93,7 @@ all_listings <- condos_listings %>%
   bind_rows(detached_listings) %>% 
   bind_rows(townhomes_listings) %>% 
   bind_rows(condo_townhomes_listings) %>% 
-  # Clean numeric variable
+  # Clean numeric variables
   mutate(
     n_beds = str_replace_all(n_beds, "[^0-9+]", ""),
     n_baths = str_replace_all(n_baths, "[^0-9+]", ""),
@@ -199,15 +199,6 @@ parsed_dataset <- listings_data %>%
                            .f = ~ parse_response(geocode_res = .,
                                                  data_element = "route")),
     
-    # postal_code = purrr::map_chr(geocode_res,
-    #                              .f = ~ parse_response(geocode_res = .,
-    #                                                    data_element = "postal_code")),
-    
-    # sublocality = purrr::map_chr(geocode_res,
-    #                              .f = ~ .$results$address_components[[1]] %>% 
-    #                                dplyr::filter(grepl("sublocality", types)) %>% 
-    #                                dplyr::pull(long_name)),
-    
     locality = purrr::map_chr(geocode_res,
                               .f = ~ parse_response(geocode_res = .,
                                                     data_element = "locality")),
@@ -229,6 +220,7 @@ parsed_dataset <- listings_data %>%
 # Filter out incorrectly queried data
 ontario_listings <- parsed_dataset %>% 
   filter(str_detect(formatted_address, "Canada")) %>% 
+  # After filtering out non-Canadian addresses, extract postal code
   mutate(
     postal_code = purrr::map_chr(geocode_res,
                                  .f = ~ parse_response(geocode_res = .,
@@ -236,8 +228,7 @@ ontario_listings <- parsed_dataset %>%
   )
 
 saveRDS(ontario_listings,
-        file = "housing_data.rds",
-        version = 3)
+        file = "housing_data.rds")
 
 ```
 

@@ -40,7 +40,7 @@ training_data <- prep(recipe, new_data = housing_data) %>%
   bake(new_data = housing_data)
 
 folds <- vfold_cv(training_data,
-                  v = 2)
+                  v = 5)
 
 train <- xgb.DMatrix(data.matrix(training_data), label = housing_data$prices)
 
@@ -52,14 +52,14 @@ params <- list(max_depth = 8,
 
 xgb_fit <- xgb.train(data = train,
                      params = params,
-                     nrounds = 1000,
+                     nrounds = 3000,
                      maximize = FALSE,
                      objective = "reg:squarederror", 
                      print_every_n = 100,
                      booster = "gbtree")
 
 # Save model object
-saveRDS(xgb_fit, here::here("03_app/model.rds"))
+saveRDS(xgb_fit, here::here("03_app/model_fit.rds"))
 
 # Save preprocessing steps
 saveRDS(recipe, here::here("03_app/preprocessing_recipe.rds"))
